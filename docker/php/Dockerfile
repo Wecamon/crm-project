@@ -18,18 +18,18 @@ RUN apk upgrade && apk add --no-cache \
     libc6-compat\
     postgresql-client\
     postgresql-dev\
-    php8-pecl-redis\
-    php8-session\
-    php8-xml\
-    php8-ctype\
-    php8-tokenizer\
-    php8-sodium\
-    php8-curl\
-    php8-gd\
-    php8-mbstring\
-    php8-xsl\
-    php8-pear\
-    php8-intl
+    php81-pecl-redis\
+    php81-session\
+    php81-xml\
+    php81-ctype\
+    php81-tokenizer\
+    php81-sodium\
+    php81-curl\
+    php81-gd\
+    php81-mbstring\
+    php81-xsl\
+    php81-pear\
+    php81-intl
 
 RUN docker-php-ext-install\
         pdo\
