@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\MediaObjectRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: MediaObjectRepository::class)]
 #[ApiResource]
@@ -20,14 +21,26 @@ class MediaObject
     private string $path;
 
     #[ORM\Column(nullable: true)]
-    private array $meta = [];
+    private ?array $meta = [];
 
     #[ORM\Column]
-    private \DateTimeImmutable $created_at;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\ManyToOne(inversedBy: 'mediaObjects')]
     #[ORM\JoinColumn(nullable: false)]
-    private User $owner_id;
+    private User $owner;
+
+    public function __construct(
+        string $path,
+        ?array $meta,
+        User $owner
+    )
+    {
+        $this->path = $path;
+        $this->meta = $meta;
+        $this->owner = $owner;
+        $this->createdAt = new DateTimeImmutable();
+    }
 
     public function getId(): int
     {
@@ -37,13 +50,6 @@ class MediaObject
     public function getPath(): string
     {
         return $this->path;
-    }
-
-    public function setPath(string $path): self
-    {
-        $this->path = $path;
-
-        return $this;
     }
 
     public function getMeta(): array
@@ -58,27 +64,13 @@ class MediaObject
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): self
+    public function getOwner(): User
     {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
-
-    public function getOwnerId(): User
-    {
-        return $this->owner_id;
-    }
-
-    public function setOwnerId(User $owner_id): self
-    {
-        $this->owner_id = $owner_id;
-
-        return $this;
+        return $this->owner;
     }
 }

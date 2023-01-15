@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ExpenseItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: ExpenseItemRepository::class)]
 #[ApiResource]
@@ -14,26 +15,38 @@ class ExpenseItem
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 255)]
-    private ?string $title = null;
+    private string $title;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: '0')]
-    private ?string $price = null;
+    #[ORM\Column]
+    private float $price;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    private DateTimeImmutable $createdAt;
 
-    public function getId(): ?int
+    public function __construct(
+        string $title,
+        ?string $description,
+        float $price
+    )
+    {
+        $this->title = $title;
+        $this->description = $description;
+        $this->price = $price;
+        $this->createdAt = new DateTimeImmutable();
+    }
+
+    public function getId(): int
     {
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -41,7 +54,7 @@ class ExpenseItem
     public function setTitle(string $title): self
     {
         $this->title = $title;
-
+        
         return $this;
     }
 
@@ -57,7 +70,7 @@ class ExpenseItem
         return $this;
     }
 
-    public function getPrice(): ?string
+    public function getPrice():string
     {
         return $this->price;
     }
@@ -69,15 +82,8 @@ class ExpenseItem
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $created_at): self
-    {
-        $this->created_at = $created_at;
-
-        return $this;
+        return $this->createdAt;
     }
 }

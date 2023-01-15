@@ -8,18 +8,29 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
 #[ApiResource]
 class Appointment
 {
+    public const STATUS_CREATED = 'created';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CLOSED = 'closed';
+
+    public const STATUSES = [
+        self::STATUS_CREATED,
+        self::STATUS_COMPLETED,
+        self::STATUS_CLOSED,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private int $id;
 
     #[ORM\ManyToOne(inversedBy: 'appointments')]
-    private User $user_id;
+    private User $user;
 
     #[ORM\Column(length: 255)]
     private string $title;
@@ -28,30 +39,42 @@ class Appointment
     private ?string $description = null;
 
     #[ORM\Column]
-    private \DateTimeImmutable $schedule;
+    private DateTimeImmutable $schedule;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: '0')]
-    private string $price;
+    #[ORM\Column]
+    private float $price;
 
     #[ORM\Column(length: 255)]
     private string $status;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updated_at = null;
+    private ?DateTimeImmutable $updatedAt = null;
 
     #[ORM\JoinTable(name: 'appointments_media_objects')]
     #[ORM\JoinColumn(name: 'appointment_id', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'media_object_id', referencedColumnName: 'id', unique: true)]
     #[ORM\ManyToMany(targetEntity: 'MediaObject')]
     // #[ORM\OneToMany(mappedBy: 'appointment', targetEntity: MediaObject::class)]
-    private Collection $media_object_id;
+    private Collection $mediaObjects;
 
-    public function __construct()
+    public function __construct(
+        User $user,
+        string $title,
+        ?string $description,
+        DateTimeImmutable $schedule,
+        float $price
+    )
     {
-        $this->media_object_id = new ArrayCollection();
+        $this->user = $user;
+        $this->title = $title;
+        $this->description = $description;
+        $this->schedule = $schedule;
+        $this->price = $price;
+        $this->mediaObjects = new ArrayCollection();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): int
@@ -59,16 +82,9 @@ class Appointment
         return $this->id;
     }
 
-    public function getUserId(): User
+    public function getUser(): User
     {
-        return $this->user_id;
-    }
-
-    public function setUserId(User $user_id): self
-    {
-        $this->user_id = $user_id;
-
-        return $this;
+        return $this->user;
     }
 
     public function getTitle(): string
@@ -95,24 +111,24 @@ class Appointment
         return $this;
     }
 
-    public function getSchedule(): \DateTimeImmutable
+    public function getSchedule(): DateTimeImmutable
     {
         return $this->schedule;
     }
 
-    public function setSchedule(\DateTimeImmutable $schedule): self
+    public function setSchedule(DateTimeImmutable $schedule): self
     {
         $this->schedule = $schedule;
 
         return $this;
     }
 
-    public function getPrice(): string
+    public function getPrice(): float
     {
         return $this->price;
     }
 
-    public function setPrice(string $price): self
+    public function setPrice(float $price): self
     {
         $this->price = $price;
 
@@ -126,31 +142,28 @@ class Appointment
 
     public function setStatus(string $status): self
     {
+        if (!in_array($status, self::STATUSES)) {
+            throw new \InvalidArgumentException('Invalid status provided');
+        }
+
         $this->status = $status;
 
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): self
+    public function getUpdatedAt(): ?DateTimeImmutable
     {
-        $this->created_at = $created_at;
-
-        return $this;
+        return $this->updatedAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function setUpdatedAt(?DateTimeImmutable $updatedAt): self
     {
-        return $this->updated_at;
-    }
-
-    public function setUpdatedAt(?\DateTimeImmutable $updated_at): self
-    {
-        $this->updated_at = $updated_at;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
@@ -158,30 +171,22 @@ class Appointment
     /**
      * @return Collection<int, MediaObject>
      */
-    public function getMediaObjectId(): Collection
+    public function getMediaObjects(): Collection
     {
-        return $this->media_object_id;
+        return $this->mediaObjects;
     }
 
-    // public function addMediaObjectId(MediaObject $mediaObjectId): self
-    // {
-    //     if (!$this->media_object_id->contains($mediaObjectId)) {
-    //         $this->media_object_id->add($mediaObjectId);
-    //         $mediaObjectId->setAppointment($this);
-    //     }
+    public function addMediaObjectId(MediaObject $mediaObject): self
+    {
+        $this->mediaObjects->add($mediaObject);
 
-    //     return $this;
-    // }
+        return $this;
+    }
 
-    // public function removeMediaObjectId(MediaObject $mediaObjectId): self
-    // {
-    //     if ($this->media_object_id->removeElement($mediaObjectId)) {
-    //         // set the owning side to null (unless already changed)
-    //         if ($mediaObjectId->getAppointment() === $this) {
-    //             $mediaObjectId->setAppointment(null);
-    //         }
-    //     }
+    public function removeMediaObjectId(MediaObject $mediaObject): self
+    {
+        $this->mediaObjects->removeElement($mediaObject);
 
-    //     return $this;
-    // }
+        return $this;
+    }
 }

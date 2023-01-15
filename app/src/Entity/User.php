@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -34,21 +35,33 @@ class User
     private array $roles = [];
 
     #[ORM\Column]
-    private \DateTimeImmutable $created_at;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updated_at = null;
+    private ?DateTimeImmutable $updatedAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: Appointment::class)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Appointment::class)]
     private Collection $appointments;
 
-    #[ORM\OneToMany(mappedBy: 'owner_id', targetEntity: MediaObject::class)]
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: MediaObject::class)]
     private Collection $mediaObjects;
 
-    public function __construct()
+    public function __construct(
+        string $email,
+        int $phone,
+        string $firstname,
+        string $lastname,
+        array $roles,
+    )
     {
+        $this->email = $email;
+        $this->phone = $phone;
+        $this->firstname = $firstname;
+        $this->lastname = $lastname;
+        $this->roles = $roles;
         $this->appointments = new ArrayCollection();
         $this->mediaObjects = new ArrayCollection();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -116,26 +129,19 @@ class User
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): self
+    public function getUpdatedAt(): ?DateTimeImmutable
     {
-        $this->created_at = $created_at;
-
-        return $this;
+        return $this->updatedAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function setUpdatedAt(?DateTimeImmutable $updatedAt): self
     {
-        return $this->updated_at;
-    }
-
-    public function setUpdatedAt(?\DateTimeImmutable $updated_at): self
-    {
-        $this->updated_at = $updated_at;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
@@ -150,25 +156,17 @@ class User
 
     public function addAppointment(Appointment $appointment): self
     {
-        if (!$this->appointments->contains($appointment)) {
-            $this->appointments->add($appointment);
-            $appointment->setUserId($this);
-        }
+        $this->appointments->add($appointment);
 
         return $this;
     }
 
-    // public function removeAppointment(Appointment $appointment): self
-    // {
-    //     if ($this->appointments->removeElement($appointment)) {
-    //         // set the owning side to null (unless already changed)
-    //         if ($appointment->getUserId() === $this) {
-    //             $appointment->setUserId(null);
-    //         }
-    //     }
+    public function removeAppointment(Appointment $appointment): self
+    {
+        $this->appointments->removeElement($appointment);
 
-    //     return $this;
-    // }
+        return $this;
+    }
 
     /**
      * @return Collection<int, MediaObject>
@@ -180,23 +178,15 @@ class User
 
     public function addMediaObject(MediaObject $mediaObject): self
     {
-        if (!$this->mediaObjects->contains($mediaObject)) {
-            $this->mediaObjects->add($mediaObject);
-            $mediaObject->setOwnerId($this);
-        }
+        $this->mediaObjects->add($mediaObject);
 
         return $this;
     }
 
-    // public function removeMediaObject(MediaObject $mediaObject): self
-    // {
-    //     if ($this->mediaObjects->removeElement($mediaObject)) {
-    //         // set the owning side to null (unless already changed)
-    //         if ($mediaObject->getOwnerId() === $this) {
-    //             $mediaObject->setOwnerId(null);
-    //         }
-    //     }
+    public function removeMediaObject(MediaObject $mediaObject): self
+    {
+        $this->mediaObjects->removeElement($mediaObject);
 
-    //     return $this;
-    // }
+        return $this;
+    }
 }
