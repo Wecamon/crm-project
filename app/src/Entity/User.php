@@ -23,7 +23,7 @@ class User
     private string $email;
 
     #[ORM\Column]
-    private int $phone;
+    private string $phone;
 
     #[ORM\Column(length: 255)]
     private string $firstname;
@@ -48,7 +48,7 @@ class User
 
     public function __construct(
         string $email,
-        int $phone,
+        string $phone,
         string $firstname,
         string $lastname,
         array $roles,
@@ -64,12 +64,12 @@ class User
         $this->createdAt = new DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -81,19 +81,19 @@ class User
         return $this;
     }
 
-    public function getPhone(): ?int
+    public function getPhone(): string
     {
         return $this->phone;
     }
 
-    public function setPhone(int $phone): self
+    public function setPhone(string $phone): self
     {
         $this->phone = $phone;
 
         return $this;
     }
 
-    public function getFirstname(): ?string
+    public function getFirstname(): string
     {
         return $this->firstname;
     }
@@ -105,7 +105,7 @@ class User
         return $this;
     }
 
-    public function getLastname(): ?string
+    public function getLastname(): string
     {
         return $this->lastname;
     }
@@ -139,7 +139,7 @@ class User
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 
@@ -156,8 +156,10 @@ class User
 
     public function addAppointment(Appointment $appointment): self
     {
-        $this->appointments->add($appointment);
-
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+        }
+        
         return $this;
     }
 
@@ -178,7 +180,9 @@ class User
 
     public function addMediaObject(MediaObject $mediaObject): self
     {
-        $this->mediaObjects->add($mediaObject);
+        if (!$this->mediaObjects->contains($mediaObject)) {
+            $this->mediaObjects->add($mediaObject);
+        }
 
         return $this;
     }

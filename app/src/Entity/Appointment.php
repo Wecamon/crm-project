@@ -176,14 +176,16 @@ class Appointment
         return $this->mediaObjects;
     }
 
-    public function addMediaObjectId(MediaObject $mediaObject): self
+    public function addMediaObject(MediaObject $mediaObject): self
     {
-        $this->mediaObjects->add($mediaObject);
+        if (!$this->mediaObjects->contains($mediaObject)) {
+            $this->mediaObjects->add($mediaObject);
+        }
 
         return $this;
     }
 
-    public function removeMediaObjectId(MediaObject $mediaObject): self
+    public function removeMediaObject(MediaObject $mediaObject): self
     {
         $this->mediaObjects->removeElement($mediaObject);
 
