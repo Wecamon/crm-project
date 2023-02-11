@@ -19,6 +19,13 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+            
+    App\State\UserOutputProvider:
+        bind:
+            $itemProvider: '@api_platform.doctrine.orm.state.item_provider'
+    App\State\UsersOutputProvider:
+        bind:
+            $collectionProvider: '@api_platform.doctrine.orm.state.collection_provider'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

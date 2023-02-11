@@ -3,15 +3,36 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
+use App\Dto\UserOutput;
+use App\Dto\PostUserInput;
+use App\Dto\PatchUserInput;
+use App\Dto\UsersOutput;
+use App\State\PatchUserProcessor;
+use App\State\PostUserProcessor;
+use App\State\UserOutputProvider;
+use App\State\UsersOutputProvider;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(output: UserOutput::class, provider: UserOutputProvider::class),
+        new Post(input: PostUserInput::class, processor: PostUserProcessor::class),
+        new Patch(input: PatchUserInput::class, processor: PatchUserProcessor::class),
+        new GetCollection(output: UsersOutput::class, provider: UsersOutputProvider::class)
+    ],
+    normalizationContext:['groups' => ['User:read']],
+    denormalizationContext:['groups' => ['User:write']]
+)]
 class User
 {
     #[ORM\Id]
@@ -19,8 +40,8 @@ class User
     #[ORM\Column]
     private int $id;
 
-    #[ORM\Column(length: 255)]
-    private string $email;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email;
 
     #[ORM\Column(length: 255)]
     private string $phone;
@@ -28,11 +49,11 @@ class User
     #[ORM\Column(length: 255)]
     private string $firstname;
 
-    #[ORM\Column(length: 255)]
-    private string $lastname;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $lastname;
 
-    #[ORM\Column]
-    private array $roles = [];
+    #[ORM\Column(nullable: true)]
+    private ?array $roles = [];
 
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
@@ -47,18 +68,17 @@ class User
     private Collection $mediaObjects;
 
     public function __construct(
-        string $email,
+        ?string $email,
         string $phone,
         string $firstname,
-        string $lastname,
-        array $roles,
+        ?string $lastname,
     )
     {
         $this->email = $email;
         $this->phone = $phone;
         $this->firstname = $firstname;
         $this->lastname = $lastname;
-        $this->roles = $roles;
+        $this->roles = ['ROLE_USER'];
         $this->appointments = new ArrayCollection();
         $this->mediaObjects = new ArrayCollection();
         $this->createdAt = new DateTimeImmutable();
