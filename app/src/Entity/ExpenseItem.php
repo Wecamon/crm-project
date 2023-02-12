@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: ExpenseItemRepository::class)]
-#[ApiResource]
 class ExpenseItem
 {
     #[ORM\Id]

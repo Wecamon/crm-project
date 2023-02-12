@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
-#[ApiResource]
 class Appointment
 {
     public const STATUS_CREATED = 'created';
