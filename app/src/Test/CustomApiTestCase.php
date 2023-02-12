@@ -3,19 +3,16 @@
 namespace App\Test;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use App\Entity\User;
 use ApiPlatform\Symfony\Bundle\Test\Client;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\FixtureInterface;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\ORM\EntityManager;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 abstract class CustomApiTestCase extends ApiTestCase
 {
-  protected EntityManager $em;
+    protected EntityManager $em;
     private string $token;
     private Client $clientWithCredentials;
     private ORMExecutor $executor;
@@ -35,7 +32,6 @@ abstract class CustomApiTestCase extends ApiTestCase
         $purger = new ORMPurger();
         $purger->setPurgeMode(ORMPurger::PURGE_MODE_DELETE);
         $this->executor = new ORMExecutor($this->em, $purger);
-        $purger->purge();
         $connection->executeQuery('SET session_replication_role = DEFAULT;');
         $connection->close();
     }

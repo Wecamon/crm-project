@@ -29,7 +29,13 @@ RUN apk upgrade && apk add --no-cache \
     php81-mbstring\
     php81-xsl\
     php81-pear\
-    php81-intl
+    php81-xmlwriter\
+    php81-intl\
+    php81-dom\
+    php81-iconv\
+    php81-phar\
+    php81-zip\
+    php81-redis
 
 RUN docker-php-ext-install\
         pdo\

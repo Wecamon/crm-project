@@ -1,13 +1,12 @@
 <?php
 
-namespace App\test;
+namespace App\Tests;
 
 use App\DataFixtures\UserFixtures;
 use App\Test\CustomApiTestCase;
 
-class RequestTest extends CustomApiTestCase
+class UserTest extends CustomApiTestCase
 {
-    
     public function testPostUserRequest(): void
     {
         $this->loadFixtures(UserFixtures::class);
@@ -28,6 +27,7 @@ class RequestTest extends CustomApiTestCase
     public function testGetUserRequest(): void
     {
         $this->loadFixtures(UserFixtures::class);
+        dd('stop');
         $client = self::createClient();
         $response = $client->request('GET', '/api/v1/users/1', [
             'headers' => [

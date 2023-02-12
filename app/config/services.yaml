@@ -10,6 +10,16 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    _instanceof:
+        App\State\Provider\CollectionProviderInterface:
+            bind:
+                $collectionProvider: '@api_platform.doctrine.orm.state.collection_provider'
+        App\State\Provider\ItemProviderInterface:
+            bind:
+                $itemProvider: '@api_platform.doctrine.orm.state.item_provider'
+        App\State\Processor\PersistProcessorInterface:
+            bind:
+                $persistProcessor: '@api_platform.doctrine.orm.state.persist_processor'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -19,13 +29,6 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-            
-    App\State\UserOutputProvider:
-        bind:
-            $itemProvider: '@api_platform.doctrine.orm.state.item_provider'
-    App\State\UsersOutputProvider:
-        bind:
-            $collectionProvider: '@api_platform.doctrine.orm.state.collection_provider'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

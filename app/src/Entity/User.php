@@ -15,11 +15,10 @@ use DateTimeImmutable;
 use App\Dto\UserOutput;
 use App\Dto\PostUserInput;
 use App\Dto\PatchUserInput;
-use App\Dto\UsersOutput;
-use App\State\PatchUserProcessor;
-use App\State\PostUserProcessor;
-use App\State\UserOutputProvider;
-use App\State\UsersOutputProvider;
+use App\State\Provider\User\UserOutputProvider;
+use App\State\Provider\User\UsersOutputProvider;
+use App\State\Processor\User\PostUserProcessor;
+use App\State\Processor\User\PatchUserProcessor;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -28,7 +27,7 @@ use App\State\UsersOutputProvider;
         new Get(output: UserOutput::class, provider: UserOutputProvider::class),
         new Post(input: PostUserInput::class, processor: PostUserProcessor::class),
         new Patch(input: PatchUserInput::class, processor: PatchUserProcessor::class),
-        new GetCollection(output: UsersOutput::class, provider: UsersOutputProvider::class)
+        new GetCollection(output: UserOutput::class, provider: UsersOutputProvider::class)
     ],
     normalizationContext:['groups' => ['User:read']],
     denormalizationContext:['groups' => ['User:write']]

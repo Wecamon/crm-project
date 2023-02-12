@@ -7,14 +7,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class PatchUserInput
 {
     #[Groups(["User:write"])]
-    public ?string $firstname;
+    public ?string $firstname = null;
 
     #[Groups(["User:write"])]
-    public ?string $lastname;
+    public ?string $lastname = null;
 
     #[Groups(["User:write"])]
-    public ?string $email;
+    public ?string $email = null;
 
     #[Groups(["User:write"])]
-    public ?string $phone;
+    public ?string $phone = null;
 }

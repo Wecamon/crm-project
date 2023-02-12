@@ -1,13 +1,14 @@
 <?php
 
-namespace App\State;
+namespace App\State\Provider\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\UsersOutput;
 use App\Entity\User;
+use App\State\Provider\CollectionProviderInterface;
 
-class UsersOutputProvider implements ProviderInterface
+class UsersOutputProvider implements CollectionProviderInterface
 {
     public function __construct(private ProviderInterface $collectionProvider)
     {
