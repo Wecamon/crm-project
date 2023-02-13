@@ -3,14 +3,33 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Repository\AppointmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
+use App\Entity\User;
+use ApiPlatform\Metadata\Get;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
+#[ApiResource(
+    uriTemplate: '/users/{userId}/appointments/{appointmentId}',
+    uriVariables: [
+        'userId' => new Link(fromClass: User::class, toProperty: 'user'),
+        'appointmentId' => new Link(fromClass: Appointment::class),
+    ],
+    operations: [ new Get() ]
+)]
+#[ApiResource(
+    uriTemplate: '/users/{userId}/appointments',
+    uriVariables: [
+        'userId' => new Link(fromClass: User::class, toProperty: 'user'),
+    ],
+    operations: [ new GetCollection() ]
+)]
 class Appointment
 {
     public const STATUS_CREATED = 'created';

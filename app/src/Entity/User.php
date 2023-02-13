@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,9 +21,18 @@ use App\State\PatchUserProcessor;
 use App\State\PostUserProcessor;
 use App\State\UserOutputProvider;
 use App\State\UsersOutputProvider;
+use App\Entity\Appointment;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[ApiResource(
+    uriTemplate: '/users/{userId}/appointments/{appointmentId}',
+    uriVariables: [
+        'userId' => new Link(fromClass: User::class, toProperty: 'id'),
+        'appointmentId' => new Link(fromClass: Appointment::class),
+    ],
+    operations: [ new Get() ]
+)]
 #[ApiResource(
     operations: [
         new Get(output: UserOutput::class, provider: UserOutputProvider::class),
