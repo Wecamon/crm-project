@@ -22,17 +22,11 @@ use App\State\Processor\User\PostUserProcessor;
 use App\State\Processor\User\PatchUserProcessor;
 use App\Dto\UsersOutput;
 use App\Entity\Appointment;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource(
-    uriTemplate: '/users/{userId}/appointments/{appointmentId}',
-    uriVariables: [
-        'userId' => new Link(fromClass: User::class, toProperty: 'id'),
-        'appointmentId' => new Link(fromClass: Appointment::class),
-    ],
-    operations: [ new Get() ]
-)]
 #[ApiResource(
     operations: [
         new Get(output: UserOutput::class, provider: UserOutputProvider::class),
@@ -43,7 +37,14 @@ use App\Entity\Appointment;
     normalizationContext:['groups' => ['User:read']],
     denormalizationContext:['groups' => ['User:write']]
 )]
-class User
+#[ApiResource(
+    uriTemplate: '/appointments/{appointmentId}/user',
+    uriVariables: [
+        'appointmentId' => new Link(fromClass: Appointment::class, fromProperty: 'user'),
+    ],
+    operations: [ new Get() ]
+)]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -55,6 +56,9 @@ class User
 
     #[ORM\Column(length: 255)]
     private string $phone;
+
+    #[ORM\Column(length: 255)]
+    private ?string $password;
 
     #[ORM\Column(length: 255)]
     private string $firstname;
@@ -96,6 +100,47 @@ class User
     public function getId(): int
     {
         return $this->id;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+     /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
     }
 
     public function getEmail(): ?string
