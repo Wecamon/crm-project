@@ -30,7 +30,7 @@ use App\State\Processor\User\PatchUserProcessor;
         new GetCollection(output: UserOutput::class, provider: UsersOutputProvider::class)
     ],
     normalizationContext:['groups' => ['User:read']],
-    denormalizationContext:['groups' => ['User:write']]
+    //denormalizationContext:['groups' => ['User:write']]
 )]
 class User
 {
@@ -71,8 +71,7 @@ class User
         string $phone,
         string $firstname,
         ?string $lastname,
-    )
-    {
+    ) {
         $this->email = $email;
         $this->phone = $phone;
         $this->firstname = $firstname;

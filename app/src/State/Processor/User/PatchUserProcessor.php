@@ -4,14 +4,17 @@ namespace App\State\Processor\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Repository\UserRepository;
+use App\State\Processor\PersistProcessorInitializerInterface;
 use App\State\Processor\PersistProcessorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class PatchUserProcessor implements PersistProcessorInterface
+class PatchUserProcessor implements PersistProcessorInterface, PersistProcessorInitializerInterface
 {
     public function __construct(
         private ProcessorInterface $persistProcessor,
-        private ValidatorInterface $validator
+        private ValidatorInterface $validator,
+        private UserRepository $userRepository
     ) {
     }
 
@@ -19,12 +22,10 @@ class PatchUserProcessor implements PersistProcessorInterface
     {
         $this->validator->validate($data);
 
-        $user = $context['previous_data'];
-        $user->setEmail($data->email);
+        dd($data);
+        $user = $this->userRepository->find($uriVariables['id']);
 
-        // TODO: Finish patch processor.
-
-        $user = $this->persistProcessor->process($user, $operation, $uriVariables, $context);
+        $this->persistProcessor->process($user, $operation, $uriVariables, $context);
 
         return $user;
     }
