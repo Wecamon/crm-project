@@ -3,36 +3,71 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
+use App\Dto\UserOutput;
+use App\Dto\PostUserInput;
+use App\Dto\PatchUserInput;
+use App\State\Provider\User\UserOutputProvider;
+use App\State\Provider\User\UsersOutputProvider;
+use App\State\Processor\User\PostUserProcessor;
+use App\State\Processor\User\PatchUserProcessor;
+use App\Entity\Appointment;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ApiResource]
-class User
+#[ApiResource(
+    operations: [
+        new Get(output: UserOutput::class, provider: UserOutputProvider::class),
+        new Post(input: PostUserInput::class, processor: PostUserProcessor::class),
+        new Patch(input: PatchUserInput::class, processor: PatchUserProcessor::class),
+        new GetCollection(output: UserOutput::class, provider: UsersOutputProvider::class)
+    ],
+    normalizationContext:['groups' => ['User:read']],
+    denormalizationContext:['groups' => ['User:write']]
+)]
+#[ApiResource(
+    uriTemplate: '/appointments/{appointmentId}/user',
+    uriVariables: [
+        'appointmentId' => new Link(fromClass: Appointment::class, fromProperty: 'user'),
+    ],
+    operations: [ new Get() ]
+)]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private int $id;
 
-    #[ORM\Column(length: 255)]
-    private string $email;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email;
 
     #[ORM\Column(length: 255)]
     private string $phone;
 
     #[ORM\Column(length: 255)]
-    private string $firstname;
+    private ?string $password;
 
     #[ORM\Column(length: 255)]
-    private string $lastname;
+    private string $firstname;
 
-    #[ORM\Column]
-    private array $roles = [];
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $lastname;
+
+    #[ORM\Column(nullable: true)]
+    private ?array $roles = [];
 
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
@@ -47,18 +82,19 @@ class User
     private Collection $mediaObjects;
 
     public function __construct(
-        string $email,
+        ?string $email,
         string $phone,
         string $firstname,
-        string $lastname,
-        array $roles,
-    )
-    {
+        ?string $lastname,
+        string $plainPassword,
+        UserPasswordHasherInterface $hasher
+    ) {
         $this->email = $email;
         $this->phone = $phone;
         $this->firstname = $firstname;
         $this->lastname = $lastname;
-        $this->roles = $roles;
+        $this->password = $hasher->hashPassword($this, $plainPassword);
+        $this->roles = ['ROLE_USER'];
         $this->appointments = new ArrayCollection();
         $this->mediaObjects = new ArrayCollection();
         $this->createdAt = new DateTimeImmutable();
@@ -67,6 +103,47 @@ class User
     public function getId(): int
     {
         return $this->id;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->phone;
+    }
+
+     /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $plainPassword, UserPasswordHasherInterface $hasher): self
+    {
+        $this->password = $hasher->hashPassword($this, $plainPassword);
+
+        return $this;
+    }
+
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
     }
 
     public function getEmail(): ?string
@@ -110,7 +187,7 @@ class User
         return $this->lastname;
     }
 
-    public function setLastname(string $lastname): self
+    public function setLastname(?string $lastname): self
     {
         $this->lastname = $lastname;
 

@@ -21,7 +21,6 @@ services:
       dockerfile: docker/php/Dockerfile
     volumes:
       - ./app/:/var/www/app
-      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     environment:
       PHP_IDE_CONFIG: "serverName=docker"
       XDEBUG_SESSION: "PHPSTORM"

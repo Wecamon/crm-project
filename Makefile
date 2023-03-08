@@ -10,7 +10,7 @@ down:
 	docker compose down
 
 php_bash:
-	docker compose exec php bash
+	docker compose exec php sh
 
 test_build:
 	docker compose exec php bin/console cache:clear --env=test

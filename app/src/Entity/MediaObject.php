@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: MediaObjectRepository::class)]
-#[ApiResource]
 class MediaObject
 {
     #[ORM\Id]
