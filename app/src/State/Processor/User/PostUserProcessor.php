@@ -4,16 +4,17 @@ namespace App\State\Processor\User;
 
 use ApiPlatform\Doctrine\Common\State\PersistProcessor;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Validator\ValidatorInterface;
 use App\Entity\User;
 use App\State\Processor\PersistProcessorInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class PostUserProcessor implements PersistProcessorInterface
 {
     public function __construct(
         private PersistProcessor $persistProcessor,
-        private ValidatorInterface $validator
+        private ValidatorInterface $validator,
+        private UserPasswordHasherInterface $hasher
     ) {
     }
 
@@ -28,7 +29,9 @@ class PostUserProcessor implements PersistProcessorInterface
             $data->email,
             $data->phone,
             $data->firstname,
-            $data->lastname
+            $data->lastname,
+            $data->password,
+            $this->hasher
         );
 
         $this->persistProcessor->process($user, $operation, $uriVariables, $context);

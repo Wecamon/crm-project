@@ -20,8 +20,8 @@ use App\State\Provider\User\UserOutputProvider;
 use App\State\Provider\User\UsersOutputProvider;
 use App\State\Processor\User\PostUserProcessor;
 use App\State\Processor\User\PatchUserProcessor;
-use App\Dto\UsersOutput;
 use App\Entity\Appointment;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -86,11 +86,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         string $phone,
         string $firstname,
         ?string $lastname,
+        string $plainPassword,
+        UserPasswordHasherInterface $hasher
     ) {
         $this->email = $email;
         $this->phone = $phone;
         $this->firstname = $firstname;
         $this->lastname = $lastname;
+        $this->password = $hasher->hashPassword($this, $plainPassword);
         $this->roles = ['ROLE_USER'];
         $this->appointments = new ArrayCollection();
         $this->mediaObjects = new ArrayCollection();
@@ -109,7 +112,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->phone;
     }
 
      /**
@@ -120,9 +123,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->password;
     }
 
-    public function setPassword(?string $password): self
+    public function setPassword(string $plainPassword, UserPasswordHasherInterface $hasher): self
     {
-        $this->password = $password;
+        $this->password = $hasher->hashPassword($this, $plainPassword);
 
         return $this;
     }
@@ -184,7 +187,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastname;
     }
 
-    public function setLastname(string $lastname): self
+    public function setLastname(?string $lastname): self
     {
         $this->lastname = $lastname;
 

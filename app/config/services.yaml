@@ -35,8 +35,9 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    'App\ApiPlatform\Decorator\InitializerDecorator':
+    App\ApiPlatform\Decorator\InitializerDecorator:
         decorates: 'api_platform.serializer.normalizer.item'
         arguments:
             - '@.inner'
-            - !tagged_iterator app.denormalize_initializer
+            - !tagged app.denormalize_initializer
+        public: false

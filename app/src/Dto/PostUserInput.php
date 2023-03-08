@@ -23,5 +23,7 @@ class PostUserInput
     #[Assert\NotBlank()]
     public string $phone;
 
-
+    #[Groups(['User:write'])]
+    #[Assert\NotBlank()]
+    public string $password;
 }
