@@ -48,7 +48,7 @@ class InitializerDecorator implements DenormalizerInterface, SerializerAwareInte
         }
     }
 
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null)
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return $this->decoratedNormalizer->supportsDenormalization($data, $type, $format);
     }

@@ -1,11 +1,15 @@
 api_platform:
+    defaults:
+        normalization_context:
+            skip_null_values: false
+
     formats:
         json:
             mime_types: ['application/json']
         html:
             mime_types: ['text/html']
             
-    path_segment_name_generator: api_platform.path_segment_name_generator.dash
+    path_segment_name_generator: api_platform.metadata.path_segment_name_generator.dash
 
     mapping:
         paths: ['%kernel.project_dir%/src/Entity']
@@ -18,3 +22,5 @@ api_platform:
                 name: Authorization
                 type: header
 
+    exception_to_status:
+        ApiPlatform\Exception\ItemNotFoundException: 404

@@ -1,73 +1,104 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\Dto\Api\User\UserInputPatchDto;
+use App\Dto\Api\User\UserInputPostDto;
+use App\Dto\Api\User\UserOutputDto;
 use App\Repository\UserRepository;
+use App\State\Processor\User\PatchUserMeProcessor;
+use App\State\Processor\User\PatchUserProcessor;
+use App\State\Processor\User\PostUserProcessor;
+use App\State\Provider\User\UserProvider;
+use App\State\Provider\User\UsersProvider;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use DateTimeImmutable;
-use App\Dto\UserOutput;
-use App\Dto\PostUserInput;
-use App\Dto\PatchUserInput;
-use App\State\Provider\User\UserOutputProvider;
-use App\State\Provider\User\UsersOutputProvider;
-use App\State\Processor\User\PostUserProcessor;
-use App\State\Processor\User\PatchUserProcessor;
-use App\Entity\Appointment;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ApiResource(
     operations: [
-        new Get(output: UserOutput::class, provider: UserOutputProvider::class),
-        new Post(input: PostUserInput::class, processor: PostUserProcessor::class),
-        new Patch(input: PatchUserInput::class, processor: PatchUserProcessor::class),
-        new GetCollection(output: UserOutput::class, provider: UsersOutputProvider::class)
+        new Get(
+            uriTemplate: '/users/{id<\d+>}',
+            output: UserOutputDto::class,
+            provider: UserProvider::class,
+        ),
+        new Get(
+            uriTemplate: '/users/me',
+            output: UserOutputDto::class,
+            provider: UserProvider::class,
+        ),
+        new Post(
+            uriTemplate: '/register',
+            input: UserInputPostDto::class,
+            processor: PostUserProcessor::class,
+        ),
+        new Patch(
+            uriTemplate: '/users/{id<\d+>}',
+            input: UserInputPatchDto::class,
+            processor: PatchUserProcessor::class,
+            output: UserOutputDto::class,
+            security: 'object === user or is_granted("ROLE_ADMIN")',
+        ),
+        new Patch(
+            uriTemplate: '/users/me',
+            input: UserInputPatchDto::class,
+            processor: PatchUserMeProcessor::class,
+        ),
+        new GetCollection(
+            output: UserOutputDto::class,
+            provider: UsersProvider::class
+        ),
     ],
-    normalizationContext:['groups' => ['User:read']],
-    denormalizationContext:['groups' => ['User:write']]
+    normalizationContext: ['groups' => ['User:read']],
+    denormalizationContext: ['groups' => ['User:write']]
 )]
 #[ApiResource(
     uriTemplate: '/appointments/{appointmentId}/user',
     uriVariables: [
         'appointmentId' => new Link(fromClass: Appointment::class, fromProperty: 'user'),
     ],
-    operations: [ new Get() ]
+    operations: [new Get()]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['User:read'])]
     private int $id;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $email;
+    #[ORM\Column(length: 255, nullable: true, unique: true)]
+    private ?string $email = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private string $phone;
 
     #[ORM\Column(length: 255)]
-    private ?string $password;
+    private string $password;
 
     #[ORM\Column(length: 255)]
     private string $firstname;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $lastname;
+    private ?string $lastname = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?array $roles = [];
+    #[ORM\Column(nullable: false)]
+    private array $roles = ['ROLE_USER'];
 
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
@@ -94,7 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->firstname = $firstname;
         $this->lastname = $lastname;
         $this->password = $hasher->hashPassword($this, $plainPassword);
-        $this->roles = ['ROLE_USER'];
         $this->appointments = new ArrayCollection();
         $this->mediaObjects = new ArrayCollection();
         $this->createdAt = new DateTimeImmutable();
@@ -115,7 +145,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->phone;
     }
 
-     /**
+    /**
      * @see PasswordAuthenticatedUserInterface
      */
     public function getPassword(): string
@@ -141,7 +171,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return null;
     }
 
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
     }
@@ -151,7 +181,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
 
@@ -206,6 +236,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function addRole(string $role): self
+    {
+        if (!in_array($role, $this->roles)) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
+    }
+
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
@@ -236,7 +275,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!$this->appointments->contains($appointment)) {
             $this->appointments->add($appointment);
         }
-        
+
         return $this;
     }
 

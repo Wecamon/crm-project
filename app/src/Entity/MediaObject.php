@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\MediaObjectRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: MediaObjectRepository::class)]
 class MediaObject
@@ -33,8 +34,7 @@ class MediaObject
         string $path,
         ?array $meta,
         User $owner
-    )
-    {
+    ) {
         $this->path = $path;
         $this->meta = $meta;
         $this->owner = $owner;

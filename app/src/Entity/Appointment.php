@@ -1,18 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use App\Dto\Api\Appointment\AppointmentOutputDto;
 use App\Repository\AppointmentRepository;
+use App\State\Provider\Appointment\AppointmentsMeProvider;
+use App\State\Provider\Appointment\AppointmentsProvider;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DateTimeImmutable;
-use App\Entity\User;
-use ApiPlatform\Metadata\Get;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
 #[ApiResource(
@@ -21,19 +25,33 @@ use ApiPlatform\Metadata\Get;
         'userId' => new Link(fromClass: User::class, toProperty: 'user'),
         'appointmentId' => new Link(fromClass: Appointment::class),
     ],
-    operations: [ new Get() ]
+    operations: [new Get()],
+    normalizationContext: ['groups' => ['Appointment:read']],
+    output: AppointmentOutputDto::class,
 )]
 #[ApiResource(
-    uriTemplate: '/users/{userId}/appointments',
+    uriTemplate: '/users/{userId<\d+>}/appointments',
     uriVariables: [
         'userId' => new Link(fromClass: User::class, toProperty: 'user'),
     ],
-    operations: [ new GetCollection() ]
+    operations: [new GetCollection()],
+    normalizationContext: ['groups' => ['Appointment:read']],
+    output: AppointmentOutputDto::class,
+    provider: AppointmentsProvider::class,
+)]
+#[ApiResource(
+    uriTemplate: '/users/me/appointments',
+    operations: [new GetCollection()],
+    normalizationContext: ['groups' => ['Appointment:read']],
+    output: AppointmentOutputDto::class,
+    provider: AppointmentsMeProvider::class,
 )]
 class Appointment
 {
     public const STATUS_CREATED = 'created';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CLOSED = 'closed';
 
     public const STATUSES = [
@@ -75,7 +93,6 @@ class Appointment
     #[ORM\JoinColumn(name: 'appointment_id', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'media_object_id', referencedColumnName: 'id', unique: true)]
     #[ORM\ManyToMany(targetEntity: 'MediaObject')]
-    // #[ORM\OneToMany(mappedBy: 'appointment', targetEntity: MediaObject::class)]
     private Collection $mediaObjects;
 
     public function __construct(
@@ -84,13 +101,13 @@ class Appointment
         ?string $description,
         DateTimeImmutable $schedule,
         float $price
-    )
-    {
+    ) {
         $this->user = $user;
         $this->title = $title;
         $this->description = $description;
         $this->schedule = $schedule;
         $this->price = $price;
+        $this->status = self::STATUS_CREATED;
         $this->mediaObjects = new ArrayCollection();
         $this->createdAt = new DateTimeImmutable();
     }

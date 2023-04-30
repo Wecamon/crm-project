@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ExpenseItemRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: ExpenseItemRepository::class)]
 class ExpenseItem
@@ -32,8 +33,7 @@ class ExpenseItem
         string $title,
         ?string $description,
         float $price
-    )
-    {
+    ) {
         $this->title = $title;
         $this->description = $description;
         $this->price = $price;
@@ -53,7 +53,7 @@ class ExpenseItem
     public function setTitle(string $title): self
     {
         $this->title = $title;
-        
+
         return $this;
     }
 
@@ -69,7 +69,7 @@ class ExpenseItem
         return $this;
     }
 
-    public function getPrice():string
+    public function getPrice(): string
     {
         return $this->price;
     }
