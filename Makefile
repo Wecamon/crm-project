@@ -10,7 +10,7 @@ down:
 	docker compose down
 
 php_bash:
-	docker compose exec php bash
+	docker compose exec php sh
 
 test_build:
 	docker compose exec php bin/console cache:clear --env=test
@@ -21,5 +21,5 @@ test_build:
 test:
 	docker compose exec php bin/phpunit
 
-load_fixtures:
-	docker compose exec php bin/console doctrine:fixtures:load --env=test
+cs_fix:
+	docker compose exec php tools/php-cs-fixer/vendor/bin/php-cs-fixer fix src --allow-risky=yes
